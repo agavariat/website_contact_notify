@@ -29,7 +29,7 @@ class WebsiteForm(odoo.addons.website_form.controllers.main.WebsiteForm):
         # Ivastanin: If to override fault forms
         if values.get('email_from'):
             template_id = request.env['ir.model.data'].sudo().get_object_reference('website_contact_notify', 'website_contact_notify_mail')[1]
-            template_id.attachment_ids = file
+            #template_id.attachment_ids = file
             mail_id = request.env['mail.template'].sudo().browse(template_id).send_mail(int(record_id), force_send=True)
 
         return record_id
