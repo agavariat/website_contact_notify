@@ -16,20 +16,23 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import odoo
+import base64
+from pprint import pprint
 
 
 class WebsiteForm(odoo.addons.website_form.controllers.main.WebsiteForm):
 
     def insert_record(self, request, model, values, custom, meta=None):
         record_id = super(WebsiteForm, self).insert_record(request, model, values, custom, meta)
-        xml_file = "/etc/hola.xml"
-        file = open(xml_file, "w")
-        file.write("hola")
-        file.close()
-        # Ivastanin: If to override fault forms
+        lead = request.env['crm.lead'].search([('description', "=", values['description']), 
+                                               ('name', '=', values['name']),
+                                               ("email_from", '=', values['email_from'])])
+        at = request.env['ir.attachment'].search([('res_model', '=', 'crm.lead'), ('res_name', '=', lead.name)])
+        ids = []
+        for a in at:
+            ids.append(a.id)
+        print(ids)
         if values.get('email_from'):
             template_id = request.env['ir.model.data'].sudo().get_object_reference('website_contact_notify', 'website_contact_notify_mail')[1]
-            #template_id.attachment_ids = file
-            mail_id = request.env['mail.template'].sudo().browse(template_id).send_mail(int(record_id), force_send=True)
-
+            mail_id = request.env['mail.template'].sudo().browse(template_id).send_mail(int(record_id), force_send=True, email_values = {'attachment_ids': ids})
         return record_id
