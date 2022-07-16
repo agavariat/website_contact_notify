@@ -24,15 +24,26 @@ class WebsiteForm(odoo.addons.website_form.controllers.main.WebsiteForm):
 
     def insert_record(self, request, model, values, custom, meta=None):
         record_id = super(WebsiteForm, self).insert_record(request, model, values, custom, meta)
-        lead = request.env['crm.lead'].search([('description', "=", values['description']), 
-                                               ('name', '=', values['name']),
-                                               ("email_from", '=', values['email_from'])])
-        at = request.env['ir.attachment'].search([('res_model', '=', 'crm.lead'), ('res_name', '=', lead.name)])
         ids = []
-        for a in at:
-            ids.append(a.id)
-        print(ids)
+        if len(request.params) > 6:
+            i = 0
+            while i != -1:
+                try:
+                    file_name = request.params['attachment[0][' + str(i)+ ']'].filename
+                    field_value = base64.b64encode(request.params['attachment[0]['+ str(i)+']'].read())
+                    vals = {'name': file_name,
+                            'datas': field_value,
+                            'res_model': 'ir.ui.view',
+                            }
+                    at = request.env['ir.attachment'].create(vals)
+                    print(at)
+                    ids.append(at.id)
+                    i += 1
+                except:
+                    i = -1
         if values.get('email_from'):
-            template_id = request.env['ir.model.data'].sudo().get_object_reference('website_contact_notify', 'website_contact_notify_mail')[1]
-            mail_id = request.env['mail.template'].sudo().browse(template_id).send_mail(int(record_id), force_send=True, email_values = {'attachment_ids': ids})
+            template_id = request.env['ir.model.data'].sudo().get_object_reference('website_contact_notify', 
+                                                                                   'website_contact_notify_mail')[1]
+            mail_id = request.env['mail.template'].sudo().browse(template_id).send_mail(int(record_id), force_send=True, 
+                                                                                                        email_values = {'attachment_ids': ids})
         return record_id
