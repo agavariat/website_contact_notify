@@ -18,6 +18,7 @@
 import odoo
 import base64
 from pprint import pprint
+from odoo import http, SUPERUSER_ID, _
 
 
 class WebsiteForm(odoo.addons.website_form.controllers.main.WebsiteForm):
@@ -35,7 +36,7 @@ class WebsiteForm(odoo.addons.website_form.controllers.main.WebsiteForm):
                             'datas': field_value,
                             'res_model': 'ir.ui.view',
                             }
-                    at = request.env['ir.attachment'].create(vals)
+                    at = request.env['ir.attachment'].with_user(SUPERUSER_ID).create(vals)
                     print(at)
                     ids.append(at.id)
                     i += 1
